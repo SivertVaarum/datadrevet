@@ -1,6 +1,7 @@
 import pandas as pd
 
 doc = pd.read_csv("../smoking_driking_dataset_Ver01.csv")
+print(len(doc))
 
 #2. Choose appropriate methods to handle missing values (e.g., mean/median
 #   imputation for numerical data, mode imputation for categorical data, or deletion of
@@ -25,6 +26,7 @@ def hearingReplace(column):
     return
     
 def save():
+    print(len(doc))
     doc.to_csv("data_cleaned.csv", index=False)
     return
 
@@ -32,6 +34,7 @@ def save():
 
 deleteColumn("DRK_YN") #Missing values for drinking deletion.
 deleteColumn("SMK_stat_type_cd") #Missing smoke? -> Delete row.
+deleteColumn("urine_protein")
 
 hearingReplace("hear_left") #
 hearingReplace("hear_right")
@@ -50,7 +53,7 @@ deleteColumn("LDL_chole")
 deleteColumn("triglyceride")
 deleteColumn("hemoglobin")
 #serum_creatinine	SGOT_AST	SGOT_ALT	gamma_GTP
-deleteColumn("serum_creatining")
+deleteColumn("serum_creatinine")
 deleteColumn("SGOT_AST")
 deleteColumn("SGOT_ALT")
 deleteColumn("gamma_GTP")
