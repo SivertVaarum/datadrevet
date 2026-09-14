@@ -9,23 +9,25 @@ print(len(doc))
 
 #Drops missing values
 def deleteColumn(column):
-    
+    global doc
     print(len(doc))
-    doc[column] = doc[column].dropna()
+    doc = doc.dropna(subset=[column])
     print(len(doc))
     
 def replaceWithMedian(column):
-    
+    global doc
     median = doc[column].median()
     doc[column] = doc[column].fillna(median)
     return
 
 #Missing hearing values as flagged as "dont know" using -1
 def hearingReplace(column):
+    global doc
     doc[column] = doc[column].fillna(-1)
     return
     
 def save():
+    global doc
     print(len(doc))
     doc.to_csv("data_cleaned.csv", index=False)
     return
@@ -57,3 +59,5 @@ deleteColumn("serum_creatinine")
 deleteColumn("SGOT_AST")
 deleteColumn("SGOT_ALT")
 deleteColumn("gamma_GTP")
+
+save()

@@ -1,9 +1,10 @@
 import pandas
 import numpy
 
-doc = pandas.read_csv("smoking_driking_dataset_Ver01.csv")
-clean_doc = None
+doc = pandas.read_csv("data_cleaned.csv")
 
+
+#removes outliers after iqr.
 def outlierRemoval(column):
 
     doc[column] = numpy.log(doc[column])
@@ -22,14 +23,10 @@ def outlierRemoval(column):
 
     print("lines before/after: " + len(doc), len(doc_clean))
 
-def handleMissing():
-    #Regn ut median og insert? 
-    return None
-
-def encodingCatergorical():
-    #Male = 0, Female = 1
-    return None
-
-
+def outlierCap():
+    return
+def save():
+    doc.to_csv("data_cleaned.csv", index=False)
+    
 outlierRemoval("tot_chole")
 outlierRemoval()
