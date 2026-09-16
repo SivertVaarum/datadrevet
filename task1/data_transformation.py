@@ -2,7 +2,7 @@ import pandas
 
 from sklearn.preprocessing import StandardScaler
 
-doc = pandas.read_csv("data_outliered.csv")
+doc = pandas.read_csv("data_cleaned_outliers_handled.csv")
 
 def encodeSex():
     global doc
