@@ -32,8 +32,6 @@ def save():
     doc.to_csv("data_cleaned.csv", index=False)
     return
 
-
-
 deleteColumn("DRK_YN") #Missing values for drinking deletion.
 deleteColumn("SMK_stat_type_cd") #Missing smoke? -> Delete row.
 deleteColumn("urine_protein")
