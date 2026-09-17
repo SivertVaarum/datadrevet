@@ -57,7 +57,7 @@ def handle_outliers(doc, column, impossible_low, impossible_high, clinical_refer
 
 
 def run_all_outlier_handling():
-    output_filepath = "data_cleaned_outliers_handled.csv"
+    output_filepath = "data_cleaned_outliered.csv"
     doc = pd.read_csv("data_cleaned.csv")
 
     doc = handle_outliers(doc, 'BLDS', impossible_low=40, impossible_high=600, clinical_reference=126)
@@ -66,7 +66,7 @@ def run_all_outlier_handling():
     doc = handle_outliers(doc, 'gamma_GTP', impossible_low=1, impossible_high=2000)
     doc = handle_outliers(doc, 'waistline', impossible_low=40, impossible_high=200, delete_stat_outliers=True)
     doc = handle_outliers(doc, 'weight', impossible_low=20, impossible_high=250, delete_stat_outliers=True)
- 
+    doc = handle_outliers(doc, 'height', impossible_low=100, impossible_high=250, delete_stat_outliers=True)
     doc.to_csv(output_filepath, index=False)
     return doc
 
