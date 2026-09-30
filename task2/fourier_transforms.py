@@ -170,3 +170,70 @@ axes[1].imshow(enhanced_30[crop], cmap="gray", vmin=0, vmax=1, interpolation="ne
 axes[1].set_title(f"Enhanced, Gaussian D0 = 30, k = {k} (zoom)")
 for ax in axes: ax.axis("off")
 plt.tight_layout(); plt.savefig("task3_enhanced_zoom.png", dpi=150); plt.show()
+
+
+
+# ===== TASK 4: KOMPRESJON MED FOURIER =====
+from skimage.metrics import structural_similarity as ssim
+
+F = np.fft.fft2(img)
+N = F.size  # totalt antall koeffisienter (256 * 256 = 65536)
+
+def compress(F, keep_pct):
+    n_keep = max(1, int(N * keep_pct / 100))
+    flat = np.abs(F).ravel()
+    idx = np.argsort(flat)[::-1][:n_keep]    # de sterkeste koeffisientene
+    mask = np.zeros(N, dtype=bool)
+    mask[idx] = True
+    mask = mask.reshape(F.shape)
+    return np.where(mask, F, 0), mask, n_keep
+
+percentages = [50, 20, 10, 5, 2, 1, 0.5, 0.1]
+recons, masks_kept, rows = {}, {}, []
+
+for p in percentages:
+    Fc, mask, n_keep = compress(F, p)
+    rec = np.clip(np.real(np.fft.ifft2(Fc)), 0, 1)
+    recons[p], masks_kept[p] = rec, mask
+    rows.append((p, n_keep, N / n_keep, mse(img, rec), psnr(img, rec),
+                 ssim(img, rec, data_range=1.0)))
+
+# --- Tall ---
+print(f"{'Kept %':>7} {'Coeffs':>7} {'Ratio':>7} {'MSE':>9} {'PSNR':>8} {'SSIM':>6}")
+for p, n, r, m, ps, s in rows:
+    print(f"{p:7.1f} {n:7d} {r:6.0f}:1 {m:9.5f} {ps:7.2f} {s:6.3f}")
+
+# --- Figur 1: rekonstruerte bilder ---
+fig, axes = plt.subplots(2, 4, figsize=(16, 8.5))
+for ax, (p, n, r, m, ps, s) in zip(axes.flat, rows):
+    ax.imshow(recons[p], cmap="gray", vmin=0, vmax=1)
+    ax.set_title(f"{p}% kept ({r:.0f}:1)\nPSNR {ps:.1f} dB, SSIM {s:.2f}")
+    ax.axis("off")
+plt.tight_layout(); plt.savefig("task4_reconstructions.png", dpi=150); plt.show()
+
+# --- Figur 2: kvalitet mot andel beholdt ---
+ps_vals = [r[4] for r in rows]; ss_vals = [r[5] for r in rows]
+fig, ax1 = plt.subplots(figsize=(8, 5))
+ax1.plot(percentages, ps_vals, "o-", label="PSNR (dB)")
+ax1.set_xscale("log"); ax1.set_xlabel("Coefficients kept (%)"); ax1.set_ylabel("PSNR (dB)")
+ax2 = ax1.twinx()
+ax2.plot(percentages, ss_vals, "s--", color="tab:orange", label="SSIM")
+ax2.set_ylabel("SSIM")
+fig.legend(loc="lower right"); ax1.set_title("Reconstruction quality vs. coefficients kept")
+plt.tight_layout(); plt.savefig("task4_quality_curve.png", dpi=150); plt.show()
+
+# --- Figur 3: hvilke koeffisienter som ble beholdt ---
+fig, axes = plt.subplots(1, 3, figsize=(12, 4))
+for ax, p in zip(axes, [10, 1, 0.1]):
+    ax.imshow(np.fft.fftshift(masks_kept[p]), cmap="gray")
+    ax.set_title(f"Coefficients kept: {p}%"); ax.axis("off")
+plt.tight_layout(); plt.savefig("task4_kept_masks.png", dpi=150); plt.show()
+
+# --- Figur 4: utsnitt av skiltet ---
+crop = (slice(140, 210), slice(130, 230))
+fig, axes = plt.subplots(1, 4, figsize=(16, 4))
+for ax, (title, im) in zip(axes, [("Original", img), ("10% kept", recons[10]),
+                                  ("2% kept", recons[2]), ("0.5% kept", recons[0.5])]):
+    ax.imshow(im[crop], cmap="gray", vmin=0, vmax=1, interpolation="nearest")
+    ax.set_title(title); ax.axis("off")
+plt.tight_layout(); plt.savefig("task4_zoom.png", dpi=150); plt.show()
