@@ -114,3 +114,59 @@ for ax, (title, im) in zip(axes, [("Original", img),
     ax.imshow(im[crop], cmap="gray", vmin=0, vmax=1, interpolation="nearest")
     ax.set_title(title); ax.axis("off")
 plt.tight_layout(); plt.savefig("task2_ringing_zoom.png", dpi=150); plt.show()
+
+
+
+
+# ===== TASK 3: HIGH-PASS FILTER =====
+
+cutoffs = [10, 30, 60]
+hp_masks, hp_results = {}, {}
+
+# --- Lag høypassmasker (det motsatte av lavpass) ---
+for D0 in cutoffs:
+    hp_masks[("Ideal", D0)] = 1 - (D <= D0).astype(float)
+    hp_masks[("Gaussian", D0)] = 1 - np.exp(-(D ** 2) / (2 * D0 ** 2))
+for key, H in hp_masks.items():
+    hp_results[key] = apply_filter(img, H)
+
+# --- Figur 1: høypassmaskene ---
+fig, axes = plt.subplots(2, 3, figsize=(12, 8))
+for i, name in enumerate(["Ideal", "Gaussian"]):
+    for j, D0 in enumerate(cutoffs):
+        axes[i, j].imshow(hp_masks[(name, D0)], cmap="gray", vmin=0, vmax=1)
+        axes[i, j].set_title(f"{name} HPF mask, D0 = {D0}")
+        axes[i, j].axis("off")
+plt.tight_layout(); plt.savefig("task3_masks.png", dpi=150); plt.show()
+
+# --- Figur 2: høypassresultatene (kantene) ---
+fig, axes = plt.subplots(2, 3, figsize=(12, 8))
+for i, name in enumerate(["Ideal", "Gaussian"]):
+    for j, D0 in enumerate(cutoffs):
+        edges = np.abs(hp_results[(name, D0)])
+        axes[i, j].imshow(edges, cmap="gray", vmin=0, vmax=np.percentile(edges, 99))
+        axes[i, j].set_title(f"{name} HPF, D0 = {D0}")
+        axes[i, j].axis("off")
+plt.tight_layout(); plt.savefig("task3_highpass.png", dpi=150); plt.show()
+
+# --- Figur 3: kantforsterkning (high-boost) ---
+k = 1.5
+fig, axes = plt.subplots(1, 4, figsize=(16, 4.5))
+axes[0].imshow(img, cmap="gray", vmin=0, vmax=1); axes[0].set_title("Original")
+for ax, D0 in zip(axes[1:], cutoffs):
+    enhanced = np.clip(img + k * hp_results[("Gaussian", D0)], 0, 1)
+    ax.imshow(enhanced, cmap="gray", vmin=0, vmax=1)
+    ax.set_title(f"Enhanced (Gaussian D0 = {D0}, k = {k})")
+for ax in axes: ax.axis("off")
+plt.tight_layout(); plt.savefig("task3_enhanced.png", dpi=150); plt.show()
+
+# --- Figur 4: utsnitt av skiltet, før og etter ---
+crop = (slice(140, 210), slice(130, 230))  # samme utsnitt som i Task 2
+enhanced_30 = np.clip(img + k * hp_results[("Gaussian", 30)], 0, 1)
+fig, axes = plt.subplots(1, 2, figsize=(10, 4))
+axes[0].imshow(img[crop], cmap="gray", vmin=0, vmax=1, interpolation="nearest")
+axes[0].set_title("Original (zoom)")
+axes[1].imshow(enhanced_30[crop], cmap="gray", vmin=0, vmax=1, interpolation="nearest")
+axes[1].set_title(f"Enhanced, Gaussian D0 = 30, k = {k} (zoom)")
+for ax in axes: ax.axis("off")
+plt.tight_layout(); plt.savefig("task3_enhanced_zoom.png", dpi=150); plt.show()
