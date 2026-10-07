@@ -1,8 +1,0 @@
-Images: 5, shape: (64, 64)
-Projected data shape: (5, 20)
-
-k, cumulative variance, reconstruction MSE
-1, 0.5173, 0.026395
-5, 1.0000, 0.000000
-10, 1.0000, 0.000000
-20, 1.0000, 0.000000
