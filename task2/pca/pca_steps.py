@@ -127,16 +127,36 @@ def save_components_image(outdir, components, side, n=10):
     plt.close(fig)
 
 
-def save_variance_plot(outdir, eigenvalues):
-    """Save per-component and cumulative explained variance."""
+def save_variance_plot(outdir, eigenvalues, k, thresholds=(0.90, 0.95)):
+    """Save per-component and cumulative explained variance.
+
+    Only non-zero components are shown (at most N - 1 for N images).
+    The chosen k and the variance thresholds are marked on the plots.
+    """
     ratio = explained_variance_ratio(eigenvalues)
-    n = min(len(ratio), 100)
+    n = min(int(np.sum(ratio > 1e-10)), 100)
+    cum = np.cumsum(ratio)
+    ks = np.arange(1, n + 1)
     fig, ax = plt.subplots(1, 2, figsize=(10, 4))
-    ax[0].plot(range(1, n + 1), ratio[:n], "o-", ms=3)
-    ax[0].set(title="Variance per component", xlabel="Component", ylabel="Ratio")
-    ax[1].plot(range(1, n + 1), np.cumsum(ratio)[:n], "o-", ms=3)
-    ax[1].set(title="Cumulative explained variance", xlabel="k", ylabel="Ratio")
-    ax[1].grid(True)
+
+    ax[0].plot(ks, ratio[:n] * 100, "o-", ms=3)
+    ax[0].axhline(1, color="gray", ls=":", lw=1, label="1 % per component")
+    ax[0].axvline(k, color="C3", ls="--", lw=1, label=f"chosen k = {k}")
+    ax[0].set(title="Variance per component", xlabel="Component",
+              ylabel="Explained variance (%)")
+    ax[0].legend()
+
+    ax[1].plot(ks, cum[:n] * 100, "o-", ms=3)
+    for t, color in zip(thresholds, ("C2", "C1")):
+        k_t = int(np.argmax(cum >= t)) + 1
+        ax[1].axhline(t * 100, color=color, ls=":", lw=1,
+                      label=f"{t:.0%} at k = {k_t}")
+    ax[1].axvline(k, color="C3", ls="--", lw=1,
+                  label=f"chosen k = {k} ({cum[k - 1]:.1%})")
+    ax[1].set(title="Cumulative explained variance", xlabel="k",
+              ylabel="Cumulative variance (%)")
+    ax[1].grid(True, alpha=0.4)
+    ax[1].legend(loc="lower right")
     fig.savefig(os.path.join(outdir, "explained_variance.png"),
                 dpi=150, bbox_inches="tight")
     plt.close(fig)
@@ -168,7 +188,7 @@ def save_all(outdir, X, result, k):
     save_arrays(outdir, result)
     save_summary(outdir, X, result, k)
     save_components_image(outdir, result["components"], side)
-    save_variance_plot(outdir, result["eigenvalues"])
+    save_variance_plot(outdir, result["eigenvalues"], k)
     save_reconstructions(outdir, X, result, side, ks)
 
 
