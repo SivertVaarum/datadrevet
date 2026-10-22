@@ -12,6 +12,7 @@ from sklearn.utils.validation import check_is_fitted
 from config import (
     BINARY_FEATURES,
     CONTINUOUS_FEATURES,
+    FEATURE_SETS,
     ORDINAL_FEATURES,
     SKEWED_FEATURES,
     SMOKING_CATEGORIES,
@@ -45,15 +46,18 @@ class QuantileClipper(OneToOneFeatureMixin, TransformerMixin, BaseEstimator):
         return np.clip(np.asarray(X, dtype=float), self.lower_bounds_, self.upper_bounds_)
 
 
-def build_preprocessor():
-    """Return an unfitted ColumnTransformer that outputs a pandas DataFrame.
+def build_preprocessor(feature_set="questionnaire"):
+    """Return an unfitted ColumnTransformer for one of config.FEATURE_SETS, outputting a DataFrame.
 
     - skewed labs:  log1p -> clip -> median impute -> standardize
     - continuous:   clip -> median impute -> standardize
     - ordinal:      mode impute -> standardize
     - binary flags: mode impute, left as 0/1
     - smoking:      one-hot, 'never' dropped as the reference category
+
+    Columns outside the feature set are dropped, and groups with no selected columns are skipped.
     """
+    selected = set(FEATURE_SETS[feature_set])
     skewed = Pipeline([
         ("log", FunctionTransformer(np.log1p, feature_names_out="one-to-one")),
         ("clip", QuantileClipper()),
@@ -72,15 +76,18 @@ def build_preprocessor():
     binary = SimpleImputer(strategy="most_frequent")
     smoking = OneHotEncoder(categories=[SMOKING_CATEGORIES], drop="first", sparse_output=False)
 
-    preprocessor = ColumnTransformer(
-        [
-            ("skewed", skewed, SKEWED_FEATURES),
-            ("continuous", continuous, CONTINUOUS_FEATURES),
-            ("ordinal", ordinal, ORDINAL_FEATURES),
-            ("binary", binary, BINARY_FEATURES),
-            ("smoking", smoking, [SMOKING_FEATURE]),
-        ],
-        remainder="drop",
-        verbose_feature_names_out=False,
-    )
+    groups = [
+        ("skewed", skewed, SKEWED_FEATURES),
+        ("continuous", continuous, CONTINUOUS_FEATURES),
+        ("ordinal", ordinal, ORDINAL_FEATURES),
+        ("binary", binary, BINARY_FEATURES),
+        ("smoking", smoking, [SMOKING_FEATURE]),
+    ]
+    transformers = []
+    for name, transformer, columns in groups:
+        columns = [column for column in columns if column in selected]
+        if columns:
+            transformers.append((name, transformer, columns))
+
+    preprocessor = ColumnTransformer(transformers, remainder="drop", verbose_feature_names_out=False)
     return preprocessor.set_output(transform="pandas")

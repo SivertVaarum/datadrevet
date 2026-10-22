@@ -37,6 +37,10 @@ PLAUSIBLE_RANGES = {
     "gamma_GTP": (1, 999),
 }
 
+# Computed from cleaned columns by feature_extraction.add_derived_features.
+DERIVED_FEATURES = ["bmi", "waist_to_height"]
+
+# Feature groups by preprocessing treatment; each model's feature set selects from them.
 # Right-skewed lab values (skewness 4-22 on the raw scale, ~0.4-1.9 after log1p).
 SKEWED_FEATURES = ["triglyceride", "serum_creatinine", "SGOT_AST", "SGOT_ALT", "gamma_GTP"]
 CONTINUOUS_FEATURES = [
@@ -45,7 +49,7 @@ CONTINUOUS_FEATURES = [
     "SBP", "DBP",
     "tot_chole", "HDL_chole", "LDL_chole",
     "hemoglobin",
-]
+] + DERIVED_FEATURES
 # Urine dipstick protein: 1 (-) .. 6 (4+), an ordered scale.
 ORDINAL_FEATURES = ["urine_protein"]
 BINARY_FEATURES = [
@@ -57,6 +61,35 @@ BINARY_FEATURES = [
 SMOKING_FEATURE = "smoking_status"
 SMOKING_CATEGORIES = [1, 2, 3]
 
-FEATURES = (
-    CONTINUOUS_FEATURES + SKEWED_FEATURES + ORDINAL_FEATURES + BINARY_FEATURES + [SMOKING_FEATURE]
-)
+# Columns produced by cleaning.clean, before feature extraction.
+CLEANED_FEATURES = [
+    feature
+    for feature in CONTINUOUS_FEATURES + SKEWED_FEATURES + ORDINAL_FEATURES + BINARY_FEATURES
+    if feature not in DERIVED_FEATURES
+] + [SMOKING_FEATURE]
+
+# Values that need a blood or urine sample. The questionnaire model excludes them because a
+# blood sample could be used to measure HbA1c directly, making the screening tool redundant.
+LAB_FEATURES = [
+    "tot_chole", "HDL_chole", "LDL_chole", "triglyceride", "hemoglobin",
+    "serum_creatinine", "SGOT_AST", "SGOT_ALT", "gamma_GTP", "urine_protein",
+]
+
+# Measured with professional equipment (blood-pressure monitor, eye chart, hearing test). The
+# questionnaire model only uses values a person can report or measure at home.
+EQUIPMENT_FEATURES = [
+    "SBP", "DBP",
+    "sight_left", "sight_right", "blind_left", "blind_right",
+    "hear_abnormal_left", "hear_abnormal_right",
+]
+
+ALL_FEATURES = CLEANED_FEATURES + DERIVED_FEATURES
+FEATURE_SETS = {
+    # Main model: self-reported, or measurable at home with a scale and a tape measure.
+    "questionnaire": [
+        feature for feature in ALL_FEATURES
+        if feature not in LAB_FEATURES + EQUIPMENT_FEATURES
+    ],
+    # Comparison model: everything, to quantify what a blood test would add.
+    "full": ALL_FEATURES,
+}

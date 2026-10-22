@@ -6,8 +6,8 @@ import numpy as np
 import pandas as pd
 
 from config import (
+    CLEANED_FEATURES,
     DIABETES_THRESHOLD_MG_DL,
-    FEATURES,
     GLUCOSE_COLUMN,
     PLAUSIBLE_RANGES,
     RAW_DATA_PATH,
@@ -91,4 +91,4 @@ def clean(df):
     df = recode_blindness(df)
     df = mask_implausible_values(df)
     df = encode_categoricals(df)
-    return df[FEATURES + [TARGET]].reset_index(drop=True)
+    return df[CLEANED_FEATURES + [TARGET]].reset_index(drop=True)
