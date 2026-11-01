@@ -1,6 +1,6 @@
 """Exploration of the raw dataset that motivates the preprocessing decisions (report section 2.1).
 
-Prints the statistics cited in the report and saves figures to figures/.
+Prints the statistics cited in the report and saves figures to figures/section2/.
 """
 import matplotlib
 
@@ -19,7 +19,7 @@ from config import (
     TASK_DIR,
 )
 
-FIGURES_DIR = TASK_DIR / "figures"
+FIGURES_DIR = TASK_DIR / "figures" / "section2"
 
 # Reference palette slots 1-2 (validated adjacent pair) and recessive ink for text and axes.
 SERIES_1 = "#2a78d6"
@@ -149,7 +149,7 @@ def plot_prevalence(df, path):
 
 def main():
     df = load_raw()
-    FIGURES_DIR.mkdir(exist_ok=True)
+    FIGURES_DIR.mkdir(parents=True, exist_ok=True)
 
     report_overview(df)
     report_measurement_resolution(df)

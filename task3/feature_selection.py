@@ -6,12 +6,12 @@ single ablation. Selection is refitted inside every cross-validation fold, so th
 never influences which features are kept and the test set is never touched.
 
 Outputs:
-    figures/feature_correlation.png   Spearman correlation of the ten questionnaire features
-    figures/pca_scree.png             explained variance per component and cumulative
-    figures/pca_scatter.png           first two components, colored by label
-    figures/feature_ranking.png       mutual information and permutation importance
-    figures/rfecv_curve.png           CV PR-AUC against the number of selected features
-    figures/pca_truncation.png        CV PR-AUC against the number of retained components
+    figures/section4/feature_correlation.png   Spearman correlation of the ten questionnaire features
+    figures/section4/pca_scree.png             explained variance per component and cumulative
+    figures/section4/pca_scatter.png           first two components, colored by label
+    figures/section4/feature_ranking.png       mutual information and permutation importance
+    figures/section4/rfecv_curve.png           CV PR-AUC against the number of selected features
+    figures/section4/pca_truncation.png        CV PR-AUC against the number of retained components
     data/feature_scores.csv           per-feature MI, permutation importance and L1 entry point
     data/l1_path.csv                  non-zero coefficients per regularization strength
     data/pca_variance.csv             explained variance ratio and cumulative variance
@@ -42,7 +42,7 @@ from config import DATA_DIR, RANDOM_STATE, TARGET, TASK_DIR
 from data_exploration import GRID, SERIES_1, SERIES_2, TEXT_PRIMARY, TEXT_SECONDARY, style_axes
 
 logger = logging.getLogger(__name__)
-FIGURES_DIR = TASK_DIR / "figures"
+FIGURES_DIR = TASK_DIR / "figures" / "section4"
 
 N_SPLITS = 5
 KNN_SPLITS = 3
@@ -493,7 +493,7 @@ def full_model_information():
 
 
 def main():
-    FIGURES_DIR.mkdir(exist_ok=True)
+    FIGURES_DIR.mkdir(parents=True, exist_ok=True)
     DATA_DIR.mkdir(exist_ok=True)
     X, y = load_questionnaire()
 

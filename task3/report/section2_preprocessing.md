@@ -30,12 +30,12 @@ These 1,203 values occur in 1,160 rows (0.12 % of the data).
 
 **Skewness.** Five lab values are strongly right-skewed even after implausible values are removed (Figure 2.1). A small number of very high values would dominate the scale of these features in distance-based models.
 
-![Figure 2.1](../figures/skewness.png)
+![Figure 2.1](../figures/section2/skewness.png)
 *Figure 2.1: Skewness of the five skewed lab values before and after a log(1 + x) transform.*
 
 **Relationship to the target.** Diabetes prevalence rises steadily with age, BMI and waist circumference (Figure 2.2). It ranges from 1 % in people under 30 to 14 % in people over 70, and from 1 % for a waist under 70 cm to 18 % for a waist over 100 cm. This confirms that the questionnaire features carry real signal. Smoking status relates to the target non-monotonically: prevalence is 6.3 % among never-smokers, 10.5 % among former smokers and 9.4 % among current smokers. Drinkers and non-drinkers differ little (7.5 % vs 7.8 %).
 
-![Figure 2.2](../figures/prevalence_by_risk_factor.png)
+![Figure 2.2](../figures/section2/prevalence_by_risk_factor.png)
 *Figure 2.2: Diabetes prevalence by age group, BMI category (WHO Asia-Pacific cut-offs) and waist circumference. The dashed line is the overall prevalence of 7.7 %.*
 
 ## 2.2 Preprocessing steps and justification

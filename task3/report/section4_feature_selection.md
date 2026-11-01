@@ -28,7 +28,7 @@ not save anything in practice.
 
 ## 4.2 Correlation between the features
 
-![Figure 4.1](../figures/feature_correlation.png)
+![Figure 4.1](../figures/section4/feature_correlation.png)
 Figure 4.1: Spearman correlation between the ten questionnaire features on the training set. Eight
 of the 45 pairs exceed 0.5, and none exceeds 0.87.
 
@@ -63,7 +63,7 @@ components reach 0.1650, a loss of 0.0006, and four reach 0.1648. Only at three 
 model get clearly worse (0.1452). The first four to six components therefore carry almost all of
 the predictive information.
 
-![Figure 4.2](../figures/feature_dimension_comparison.png)
+![Figure 4.2](../figures/section4/feature_dimension_comparison.png)
 Figure 4.2: Cross-validated PR-AUC against the number of features kept (left) and principal
 components retained (right). Both curves reach the ten-feature score at about five dimensions.
 
@@ -108,7 +108,7 @@ RFECV removed one feature at a time with the same five folds and the same PR-AUC
 Table 4.1: Selection results for the ten questionnaire features, ordered by mutual information. The
 L1 column counts how many regularization strengths on the path kept a non-zero coefficient.
 
-![Figure 4.3](../figures/feature_ranking.png)
+![Figure 4.3](../figures/section4/feature_ranking.png)
 Figure 4.3: Mutual information and permutation importance for the ten questionnaire features. Error
 bars are one standard deviation over ten shuffles.
 
