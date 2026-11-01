@@ -1,3 +1,6 @@
+---
+updated_at: 2026-11-01 21:30
+---
 # 5.0 Algorithms
 
 Section 2.2.8 fixed the main model at ten questionnaire inputs. This section implements three
@@ -8,14 +11,9 @@ additivity, and a tree that allows interactions and thresholds at the cost of va
 them shows which part of the structure matters for this problem, and gives the baseline that
 sections 6–10 build on.
 
-All code is in `task3/`: `run_algorithms.py` runs the fits, `models.py` holds the shared evaluation
-and plotting functions, and `pygam_model.py` wraps pygam's `LogisticGAM` so it behaves like an
-sklearn classifier inside a `Pipeline`. Reproduce the section with
-
-```bash
-python run_algorithms.py          # full training set, ~10 minutes on this machine
-python run_algorithms.py --quick  # 50k/10k sample, for a smoke test
-```
+All three models are fitted on the same ten questionnaire inputs and evaluated on the same
+cross-validation folds and held-out test set. The sections below describe the assumptions of each
+model, the hyperparameters that were tuned, and how the fitted model is read.
 
 ## 5.1 Why these three, and why not the others
 
@@ -57,19 +55,17 @@ continuous target. The report keeps the name *logistic regression* because that 
 is.
 
 Two baselines are carried from section 1.4: a majority-class classifier and an untuned logistic
-regression with `C = 1`. The majority baseline is a `DummyClassifier(strategy="prior")`. At the
-default 0.5 threshold it predicts the negative class for everyone, so recall is 0. At the
-recall-0.80 threshold used here it degenerates to referring every patient: recall 1 and precision
-equal to the 7.7 % prevalence (Table 5.2). The gap between that and the real models is the value
-the questionnaire adds. The untuned model shows how much of the tuned model's performance comes
-from tuning rather than from the features.
+regression with default regularization. The majority baseline always predicts the negative class
+at the default 0.5 threshold, so recall is 0. At the recall-0.80 threshold used here it degenerates
+to referring every patient: recall 1 and precision equal to the 7.7 % prevalence (Table 5.2). The
+gap between that and the real models is the value the questionnaire adds. The untuned model shows
+how much of the tuned model's performance comes from tuning rather than from the features.
 
 ## 5.2 Evaluation protocol
 
-- **Cross-validation.** Five stratified folds on the 793,032-row training set. The preprocessor
-  from section 2.2 is the first step of every pipeline, so clipping, imputation and scaling are
-  refitted on each training fold. The processed CSV files are not used for cross-validation,
-  because their statistics were fitted on the whole training set.
+- **Cross-validation.** Five stratified folds on the 793,032-row training set. Clipping,
+  imputation and scaling are refitted on each training fold rather than estimated once on the
+  whole training set, so the validation fold never influences the preprocessing.
 - **Hyperparameter search.** Logistic regression is tuned on the full training set; the GAM and
   the tree are tuned on stratified samples (150,000 and 300,000 rows, three folds) and then refit
   on all 793,032 rows. The samples are used only to choose hyperparameters, never to report the
@@ -99,15 +95,16 @@ features: each additional year of age, centimetre of waist or unit of BMI change
 a constant amount, and the effects of different features add up. That is a strong assumption, but
 it is exactly the assumption a clinician can read and challenge.
 
-The search covered `C` from 0.003 to 1 and `class_weight` in {None, balanced}. The result is
-almost flat: every `C` between 0.003 and 1 gives a cross-validated PR-AUC between 0.1658 and
-0.1659, and the balanced version is slightly worse (0.1651). The tuned model is therefore
-`C = 0.003`, `class_weight = None`, but for practical purposes it is the same model as the
+The search covered regularization strengths from \(C = 0.003\) to \(C = 1\), with and without
+balanced class weights. The result is almost flat: every regularization strength between 0.003 and
+1 gives a cross-validated PR-AUC between 0.1658 and 0.1659, and balanced class weighting is
+slightly worse (0.1651). The selected model therefore uses the strongest penalty on the grid
+(\(C = 0.003\)) and no class weighting, but for practical purposes it is the same model as the
 untuned baseline. The L2 strength is not what limits this model. That is itself informative: the
 linear form, not the amount of regularization, is the binding constraint.
 
 The coefficients, back-transformed to odds ratios per one standard deviation, are shown in
-Figure 5.1 and in `data/lr_coefficients.csv`.
+Figure 5.1.
 
 ![Figure 5.1](../figures/section5/lr_coefficients.png)
 *Figure 5.1: Logistic-regression coefficients on the standardized questionnaire features. Labels
@@ -121,11 +118,10 @@ and weight are both 1.05 and should not be over-interpreted: the coefficient is 
 other correlated body-size features, and section 4.4 already showed that drinking adds almost
 nothing once age, waist and smoking are present.
 
-The coefficients are per standard deviation because the preprocessor standardizes the continuous
-columns. For clinical reading, the same table gives per-unit odds ratios in
-`data/lr_coefficients.csv`: age 1.045 per year, waist 1.028 per cm, BMI 1.020 per kg/m², and
-waist-to-height ratio about 1.03 per 0.01. These are associations in a screening model, not causal
-effects.
+The coefficients are per standard deviation because the continuous features are standardized
+before fitting. For clinical reading, the same coefficients expressed per unit are: age 1.045 per
+year, waist 1.028 per cm, BMI 1.020 per kg/m², and waist-to-height ratio about 1.03 per 0.01.
+These are associations in a screening model, not causal effects.
 
 Cross-validated PR-AUC is 0.1659 ± 0.0021 and test PR-AUC is 0.1656. At the frozen threshold the
 test recall is 0.7925, precision 0.1328, F2 0.3975, and 45.9 % of patients are referred. The
@@ -148,25 +144,23 @@ $$
 \operatorname{logit} P(y=1 \mid x) = \beta_0 + \sum_{j=1}^{6} f_j(x_j) + \sum_{k=1}^{4} \beta_k x_k.
 $$
 
-The six continuous features (`age`, `height`, `weight`, `waistline`, `bmi`, `waist_to_height`)
-get penalized cubic-spline terms; the four binary/one-hot columns (`male`, `drinker`, and the two
-smoking indicators) stay linear. There are no interaction terms, so the model is still additive:
-the effect of age does not depend on BMI. This is the smallest relaxation of the logistic model
-that can represent the curved prevalence-age relationship visible in section 2.1.
+The six continuous features (age, height, weight, waist circumference, BMI and waist-to-height
+ratio) get penalized cubic-spline terms; the four binary indicators (male sex, drinking, and the
+two smoking indicators) stay linear. There are no interaction terms, so the model is still
+additive: the effect of age does not depend on BMI. This is the smallest relaxation of the
+logistic model that can represent the curved prevalence-age relationship visible in section 2.1.
 
-The implementation uses `pygam.LogisticGAM` through the wrapper in `pygam_model.py`. The wrapper
-resolves the preprocessor's column names to term indices, exposes a two-column `predict_proba`,
-and lets the model sit inside the same `Pipeline` and `GridSearchCV` as the other two. The search
-covered `n_splines` in {5, 8, 12} and `lam` in {0.1, 0.6, 1, 10} on 150,000 rows with three folds.
-The best combination was `n_splines = 5`, `lam = 10`: five basis functions per smooth and strong
-smoothing. The search score was 0.1707 PR-AUC, and the refit on the full training set reached
-0.1732 ± 0.0021 cross-validated and 0.1721 on test.
+The search covered the number of spline basis functions (5, 8 or 12) and the smoothing penalty
+(0.1, 0.6, 1 or 10) on 150,000 rows with three folds. The best combination was five basis
+functions and a smoothing penalty of 10: a relatively inflexible smooth per continuous feature.
+The search score was 0.1707 PR-AUC, and the refit on the full training set reached 0.1732 ± 0.0021
+cross-validated and 0.1721 on test.
 
-The effective degrees of freedom (`data/gam_edof.csv`) show where the model spends its
-flexibility. Age uses 3.61 of its 5 coefficients, weight 2.80, height 2.65, waist 2.49, BMI 2.17
-and waist-to-height ratio 1.92. The four linear terms use about one degree of freedom each, as
-they should. Age is the most non-linear feature, which is consistent with the prevalence curve in
-section 2.1: risk rises steeply through middle age and then flattens.
+The effective degrees of freedom show where the model spends its flexibility. Age uses 3.61 of
+its 5 coefficients, weight 2.80, height 2.65, waist 2.49, BMI 2.17 and waist-to-height ratio 1.92.
+The four linear terms use about one degree of freedom each, as they should. Age is the most
+non-linear feature, which is consistent with the prevalence curve in section 2.1: risk rises
+steeply through middle age and then flattens.
 
 ![Figure 5.2](../figures/section5/gam_partial_effects.png)
 *Figure 5.2: GAM partial effects on the log-odds scale, with 95 % confidence bands. Each panel
@@ -195,9 +189,10 @@ cost at population scale. If the model were retrained nightly, the difference wo
 if it were refitted per clinic, it would.
 
 **Limitations.** Additivity is still an assumption: the model cannot learn that the effect of
-waist depends on age. Smoothing choices (`n_splines`, `lam`) are selected on a subsample, and the
-partial effects are conditional on correlated columns. The GAM is also harder to deploy than a
-linear model because it needs the spline basis and the smoothing parameters at prediction time.
+waist depends on age. The number of basis functions and the smoothing penalty are selected on a
+subsample, and the partial effects are conditional on correlated columns. The GAM is also harder
+to deploy than a linear model because it needs the spline basis and the smoothing parameters at
+prediction time.
 
 ## 5.5 Decision tree
 
@@ -206,14 +201,14 @@ space into axis-aligned boxes and predicts the positive fraction in each leaf. U
 two models it can represent interactions and sharp thresholds without being told their form, and
 a path from the root to a leaf is a rule a clinician can read.
 
-The search covered `max_depth` in {4, 6, 8, 10, 12, None}, `min_samples_leaf` in
-{200, 1000, 5000, 10000} and `class_weight` in {None, balanced}, on 300,000 rows with three folds.
-The best combination was `max_depth = 10`, `min_samples_leaf = 1000`, `class_weight = None`. The
-search score was 0.1668 and the full-data refit reached 0.1708 ± 0.0020 cross-validated and
-0.1708 on test. The depth curve (Figure 5.3) is almost flat between depth 8 and 12: the tree
-captures its useful structure early and then adds variance. The leaf-size constraint matters more
-than depth, and the balanced class weights made the ranking slightly worse and the probabilities
-badly calibrated, so the final tree is unweighted.
+The search covered maximum depths from 4 to 12 (and an unbounded tree), minimum leaf sizes of 200,
+1,000, 5,000 or 10,000 patients, and unweighted versus balanced class weights, on 300,000 rows with
+three folds. The selected tree has maximum depth 10, a minimum leaf size of 1,000 and no class
+weighting. The search score was 0.1668 and the full-data refit reached 0.1708 ± 0.0020
+cross-validated and 0.1708 on test. The depth curve (Figure 5.3) is almost flat between depth 8
+and 12: the tree captures its useful structure early and then adds variance. The leaf-size
+constraint matters more than depth, and the balanced class weights made the ranking slightly worse
+and the probabilities badly calibrated, so the final tree is unweighted.
 
 ![Figure 5.3](../figures/section5/tree_depth_curve.png)
 *Figure 5.3: Cross-validated PR-AUC against maximum depth for each minimum-leaf setting. The best
@@ -224,21 +219,21 @@ class weighting is shown at each point; the curve plateaus after depth 8.*
 with a minimum of 1,000 samples per leaf; the figure is truncated for readability.*
 
 The first splits are age, waist-to-height ratio and waist circumference, which is the same story
-as the other two models.
-The permutation importances in Figure 5.5 confirm it: age costs 0.057 PR-AUC when shuffled, waist
-0.042, waist-to-height ratio 0.009, male 0.008 and current smoking 0.005. Weight, former smoking
-and height are below 0.001. Impurity importance tells the same story (age 0.47, waist 0.33), with
-the usual caveat that impurity importance favours features with many possible split points.
+as the other two models. The permutation importances in Figure 5.5 confirm it: age costs 0.057
+PR-AUC when shuffled, waist 0.042, waist-to-height ratio 0.009, male 0.008 and current smoking
+0.005. Weight, former smoking and height are below 0.001. Impurity importance tells the same story
+(age 0.47, waist 0.33), with the usual caveat that impurity importance favours features with many
+possible split points.
 
 ![Figure 5.5](../figures/section5/tree_importances.png)
 *Figure 5.5: Permutation importance for the fitted tree, measured as the drop in PR-AUC on a
 50,000-row sample. Error bars are one standard deviation over five shuffles.*
 
 On test the tree reaches PR-AUC 0.1708, ROC-AUC 0.7443, recall 0.7992 at the frozen threshold,
-precision 0.1336 and F2 0.4003. It refers 46.0 % of patients. It is therefore almost as good as
-the GAM on ranking and slightly better on recall, but it is the least stable of the three: a
-different seed or a slightly different leaf size changes the lower splits, and the tree has no
-smooth notion of risk between neighbouring boxes.
+precision 0.1336 and F2 0.4003. It refers 46.0 % of patients. It is therefore almost as good as the
+GAM on ranking and slightly better on recall, but it is the least stable of the three: a different
+seed or a slightly different leaf size changes the lower splits, and the tree has no smooth notion
+of risk between neighbouring boxes.
 
 **Limitations.** A single tree is high-variance and unstable. It is also poorly calibrated when
 class weights are used, because the leaf values are weighted fractions rather than observed
@@ -284,7 +279,7 @@ and 15,236 positives (7.685 %).*
 
 *Table 5.3: Training and prediction cost on this machine (22 CPU cores, no GPU). The GAM is
 single-threaded; the other fits use the available cores. Prediction time includes the
-preprocessing pipeline.*
+preprocessing steps.*
 
 ![Figure 5.6](../figures/section5/pr_curves_basic.png)
 *Figure 5.6: Precision-recall curves on the test set. Each dot is the frozen operating point;
@@ -303,15 +298,15 @@ Three things stand out.
    different representation of the problem.
 2. **At the screening operating point the three models are almost tied.** All refer 45–46 % of
    patients to catch about 80 % of cases, with precision 13.3–13.5 % against a 7.7 % base rate.
-   GAM has the best F2 (0.4024) and the lowest referral rate (45.4 %); the tree has the highest
-   recall (79.9 %); logistic regression is the cheapest and the easiest to explain. Choosing
-   between them is therefore a trade-off between cost, interpretability and a very small
+   The GAM has the best F2 (0.4024) and the lowest referral rate (45.4 %); the tree has the
+   highest recall (79.9 %); logistic regression is the cheapest and the easiest to explain.
+   Choosing between them is therefore a trade-off between cost, interpretability and a very small
    performance difference, not a decision forced by the data.
-3. **The stated success criterion is only partly met.** The models reach the 0.80 recall target on
-   out-of-fold predictions, but on the test set the frozen thresholds give 0.793–0.799. A
+3. **The stated success criterion is only partly met.** The models reach the 0.80 recall target
+   on out-of-fold predictions, but on the test set the frozen thresholds give 0.793–0.799. A
    threshold chosen with a small safety margin (for example, targeting 0.81 out-of-fold) would
-   close that gap at a small precision cost. The more important limitation is precision: 13.5 %
-   is 1.75 times the base rate, not "well above" it in the sense section 1.4 hoped for. The
+   close that gap at a small precision cost. The more important limitation is precision: 13.5 % is
+   1.75 times the base rate, not "well above" it in the sense section 1.4 hoped for. The
    questionnaire-only model is a useful prioritisation tool, but it is not a precise screening
    test. Section 6 asks how much of that gap the blood and urine values close.
 
