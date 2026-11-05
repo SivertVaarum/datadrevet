@@ -1,3 +1,6 @@
+---
+updated_at: 2026-11-05 21:25
+---
 # 7.0 Boosting and Bagging
 
 Sections 5–6 compared three single models. Each has a clear weakness: logistic regression cannot
@@ -45,14 +48,14 @@ For iteration \(m = 1,\ldots,M\):
    leaf-size constraints.
 3. Compute a leaf value \(\gamma_{jm}\) for each leaf \(j\) of the tree. For the logistic loss this
    is the Newton step
-   \[
+   $$
    \gamma_{jm} = \frac{\sum_{i \in R_{jm}} r_i}{\sum_{i \in R_{jm}} \hat p_i(1-\hat p_i)},
-   \]
+   $$
    where \(R_{jm}\) is the set of training rows in leaf \(j\).
 4. Update the model:
-   \[
+   $$
    F_m(x) = F_{m-1}(x) + \nu\, h_m(x),
-   \]
+   $$
    where \(\nu\) is the learning rate.
 5. Stop when the validation loss has not improved for a fixed number of iterations, or when the
    maximum number of iterations is reached.
@@ -136,9 +139,9 @@ The steps are:
 3. Store the tree and its out-of-bag rows, i.e. the training rows that were not drawn in that
    bootstrap sample.
 4. Aggregate the trees by averaging their predicted probabilities:
-   \[
+   $$
    \hat p(x) = \frac{1}{B}\sum_{b=1}^{B}\hat p_b(x).
-   \]
+   $$
 5. Estimate generalization error from the out-of-bag predictions: each training row is predicted
    only by the trees for which it was out of bag.
 
