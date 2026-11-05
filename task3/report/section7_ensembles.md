@@ -1,5 +1,5 @@
 ---
-updated_at: 2026-11-05 21:25
+updated_at: 2026-11-05 21:50
 ---
 # 7.0 Boosting and Bagging
 
@@ -49,7 +49,7 @@ For iteration $m = 1,\ldots,M$:
 3. Compute a leaf value $\gamma_{jm}$ for each leaf $j$ of the tree. For the logistic loss this
    is the Newton step
    $$
-   \gamma_{jm} = \frac{\sum_{i \in R_{jm}} r_i}{\sum_{i \in R_{jm}} \hat p_i(1-\hat p_i)},
+   \gamma_{jm} = \frac{\sum\limits_{i \in R_{jm}} r_i}{\sum\limits_{i \in R_{jm}} \hat p_i(1-\hat p_i)},
    $$
    where $R_{jm}$ is the set of training rows in leaf $j$.
 4. Update the model:
