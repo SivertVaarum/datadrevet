@@ -90,6 +90,11 @@ FEATURE_SETS = {
         feature for feature in ALL_FEATURES
         if feature not in LAB_FEATURES + EQUIPMENT_FEATURES
     ],
+    # Questionnaire plus measurements that need professional equipment but no blood sample.
+    "equipment": [
+        feature for feature in ALL_FEATURES
+        if feature not in LAB_FEATURES
+    ],
     # Comparison model: everything, to quantify what a blood test would add.
     "full": ALL_FEATURES,
 }

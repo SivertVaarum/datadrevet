@@ -1,5 +1,5 @@
 ---
-updated_at: 2026-11-01 21:30
+updated_at: 2026-11-05 15:50
 ---
 # 5.0 Algorithms
 
@@ -57,7 +57,7 @@ is.
 Two baselines are carried from section 1.4: a majority-class classifier and an untuned logistic
 regression with default regularization. The majority baseline always predicts the negative class
 at the default 0.5 threshold, so recall is 0. At the recall-0.80 threshold used here it degenerates
-to referring every patient: recall 1 and precision equal to the 7.7 % prevalence (Table 5.2). The
+to referring every patient: recall 1 and precision equal to the 7.7 % prevalence (Table 6.1). The
 gap between that and the real models is the value the questionnaire adds. The untuned model shows
 how much of the tuned model's performance comes from tuning rather than from the features.
 
@@ -241,10 +241,11 @@ frequencies; the unweighted model avoids that problem (Brier 0.0671, close to th
 axis-aligned splits cannot represent a smooth diagonal boundary, which is why the tree is a good
 candidate for the bagging and boosting comparison in section 7.
 
-## 5.6 Summary and operating point
+## 5.6 Summary of the three models
 
-Table 5.1 gives the out-of-fold results on the training set. Table 5.2 gives the single test-set
-evaluation at the frozen threshold. Table 5.3 gives the cost.
+Table 5.1 consolidates the out-of-fold results for the three models, and Table 5.2 gives their
+fitting and prediction cost. The held-out comparison, the operating point and the calibration
+analysis follow in §6.
 
 | Model | PR-AUC | ROC-AUC | Brier | Log loss | Threshold | CV recall | CV precision | CV F2 | CV referral |
 |---|---|---|---|---|---|---|---|---|---|
@@ -258,17 +259,6 @@ evaluation at the frozen threshold. Table 5.3 gives the cost.
 ± standard deviation across folds; the other metrics are means. The threshold is chosen on these
 out-of-fold predictions to give recall ≥ 0.80.*
 
-| Model | PR-AUC | ROC-AUC | Brier | Log loss | Test recall | Test precision | Test F2 | Test referral | TP | FP | FN |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-| Majority class | 0.0768 | 0.5000 | 0.0709 | 0.2710 | 1.0000 | 0.0768 | 0.2939 | 1.0000 | 15,236 | 183,022 | 0 |
-| Logistic (untuned) | 0.1656 | 0.7399 | 0.0677 | 0.2454 | 0.7939 | 0.1328 | 0.3977 | 0.4596 | 12,096 | 79,016 | 3,140 |
-| Logistic regression | 0.1656 | 0.7400 | 0.0676 | 0.2454 | 0.7925 | 0.1328 | 0.3975 | 0.4587 | 12,075 | 78,861 | 3,161 |
-| GAM | 0.1721 | 0.7457 | 0.0671 | 0.2427 | 0.7970 | 0.1350 | 0.4024 | 0.4536 | 12,143 | 77,777 | 3,093 |
-| Decision tree | 0.1708 | 0.7443 | 0.0671 | 0.2430 | 0.7992 | 0.1336 | 0.4003 | 0.4597 | 12,176 | 78,961 | 3,060 |
-
-*Table 5.2: Test-set results at the threshold frozen from Table 5.1. The test set has 198,258 rows
-and 15,236 positives (7.685 %).*
-
 | Model | Fit time (s) | Predict time (ms / 100k) |
 |---|---|---|
 | Majority class | 0.48 | 14 |
@@ -277,45 +267,12 @@ and 15,236 positives (7.685 %).*
 | GAM | 19.84 | 208 |
 | Decision tree | 1.68 | 24 |
 
-*Table 5.3: Training and prediction cost on this machine (22 CPU cores, no GPU). The GAM is
+*Table 5.2: Training and prediction cost on this machine (22 CPU cores, no GPU). The GAM is
 single-threaded; the other fits use the available cores. Prediction time includes the
 preprocessing steps.*
 
-![Figure 5.6](../figures/section5/pr_curves_basic.png)
-*Figure 5.6: Precision-recall curves on the test set. Each dot is the frozen operating point;
-the dashed line is the no-skill precision (the 7.685 % prevalence).*
-
-![Figure 5.7](../figures/section5/calibration_basic.png)
-*Figure 5.7: Calibration on the test set. Logistic regression and the GAM track the diagonal
-closely; the unweighted tree is also well calibrated, which is why the final tree does not use
-class weights.*
-
-Three things stand out.
-
-1. **The GAM is the best ranking model, but the margin is modest.** Its PR-AUC is 0.0065 above
-   logistic regression (3.9 % relative) and 0.0013 above the tree. The ROC-AUC differences are of
-   the same order. The gain comes from allowing age and the body-size effects to bend; it is not a
-   different representation of the problem.
-2. **At the screening operating point the three models are almost tied.** All refer 45–46 % of
-   patients to catch about 80 % of cases, with precision 13.3–13.5 % against a 7.7 % base rate.
-   The GAM has the best F2 (0.4024) and the lowest referral rate (45.4 %); the tree has the
-   highest recall (79.9 %); logistic regression is the cheapest and the easiest to explain.
-   Choosing between them is therefore a trade-off between cost, interpretability and a very small
-   performance difference, not a decision forced by the data.
-3. **The stated success criterion is only partly met.** The models reach the 0.80 recall target
-   on out-of-fold predictions, but on the test set the frozen thresholds give 0.793–0.799. A
-   threshold chosen with a small safety margin (for example, targeting 0.81 out-of-fold) would
-   close that gap at a small precision cost. The more important limitation is precision: 13.5 % is
-   1.75 times the base rate, not "well above" it in the sense section 1.4 hoped for. The
-   questionnaire-only model is a useful prioritisation tool, but it is not a precise screening
-   test. Section 6 asks how much of that gap the blood and urine values close.
-
-The comparison also sets up the rest of the assignment. The three basic models share the same
-weakness: they are low-capacity and all rely on the same age-plus-body-size signal. Section 7 adds
-boosting and bagging to see whether a higher-capacity ensemble extracts more from the same ten
-inputs. Section 8 adds the transfer comparison. Section 9 asks whether a deep network can learn
-the interactions that the GAM and the single tree miss. Section 10 puts the cost and performance
-numbers from this section next to the ensembles and the network.
+The three models are competitive on the same features. Section 6 evaluates them on the held-out
+set, compares their operating points and calibration, and measures what the laboratory values add.
 
 ## 5.7 Limitations
 
