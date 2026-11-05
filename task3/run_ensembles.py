@@ -166,9 +166,10 @@ def plot_search_heatmap(table, row_param, column_param, title, path):
     for row in range(pivot.shape[0]):
         for column in range(pivot.shape[1]):
             value = pivot.iloc[row, column]
-            normalized = (value - lower) / span
+            red, green, blue, _ = image.cmap((value - lower) / span)
+            luminance = 0.2126 * red + 0.7152 * green + 0.0722 * blue
             ax.text(column, row, f"{value:.4f}", ha="center", va="center",
-                    fontsize=8, color="white" if normalized < 0.35 else "black")
+                    fontsize=8, color="white" if luminance < 0.5 else "black")
     ax.set_xticks(range(pivot.shape[1]), [str(value) for value in pivot.columns], fontsize=8)
     ax.set_yticks(range(pivot.shape[0]), [str(value) for value in pivot.index], fontsize=8)
     ax.set_xlabel(column_param.replace("param_model__", ""), color=TEXT_SECONDARY, fontsize=9)
