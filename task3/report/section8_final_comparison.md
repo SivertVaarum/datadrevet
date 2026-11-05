@@ -1,5 +1,5 @@
 ---
-updated_at: 2026-11-05 21:28
+updated_at: 2026-11-06 00:32
 ---
 # 8.0 Final Comparison: Basic, Boosting, Bagging and Transfer
 
@@ -16,20 +16,18 @@ models.
 - **Bagging** — a random forest of deep trees (§7; 0.1657).
 - **Transfer** — a questionnaire-only HGB student distilled from the full-feature GAM teacher
   (§8.4; 0.1741).
-- **Teacher reference** — the full-feature GAM, which uses the ten laboratory values. It is not a
-  deployable screening model because it requires a blood sample, but it shows the ceiling that the
-  laboratory data provides.
+- **Teacher reference** — the full-feature GAM, which uses the ten laboratory values. It is not a deployable screening model because it requires a blood sample, but it shows the ceiling that the laboratory data provides.
 
 All models use the same threshold rule: the largest out-of-fold threshold with recall at least
 0.80, frozen before the test set is used. Table 8.1 gives the test results and the cost.
 
-| Model | PR-AUC | ROC-AUC | Brier | Log loss | Recall | Precision | F2 | Referral | NNS | Fit (s) | Predict (ms/100k) |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-| Basic GAM | 0.1721 | 0.7457 | 0.0671 | 0.2427 | 0.7970 | 0.1350 | 0.4024 | 0.4536 | 7.41 | 19.8 | 208 |
-| Boosting (HGB) | 0.1744 | 0.7481 | 0.0670 | 0.2417 | 0.7968 | 0.1356 | 0.4033 | 0.4517 | 7.38 | 4.5 | 173 |
-| Bagging (RF) | 0.1657 | 0.7378 | 0.0674 | 0.2448 | 0.7959 | 0.1320 | 0.3968 | 0.4634 | 7.58 | 50.0 | 1,051 |
-| Transfer (student) | 0.1741 | 0.7478 | 0.0670 | 0.2418 | 0.7986 | 0.1356 | 0.4038 | 0.4525 | 7.38 | 12.8 | 223 |
-| Teacher (full GAM) | 0.2607 | 0.8106 | 0.0633 | 0.2239 | 0.7953 | 0.1698 | 0.4580 | 0.3599 | 5.89 | 140.3 | 1,132 |
+| Model              | PR-AUC | ROC-AUC | Brier  | Log loss | Recall | Precision | F2     | Referral | NNS  | Fit (s) | Predict (ms/100k) |
+| ------------------ | ------ | ------- | ------ | -------- | ------ | --------- | ------ | -------- | ---- | ------- | ----------------- |
+| Basic GAM          | 0.1721 | 0.7457  | 0.0671 | 0.2427   | 0.7970 | 0.1350    | 0.4024 | 0.4536   | 7.41 | 19.8    | 208               |
+| Boosting (HGB)     | 0.1744 | 0.7481  | 0.0670 | 0.2417   | 0.7968 | 0.1356    | 0.4033 | 0.4517   | 7.38 | 4.5     | 173               |
+| Bagging (RF)       | 0.1657 | 0.7378  | 0.0674 | 0.2448   | 0.7959 | 0.1320    | 0.3968 | 0.4634   | 7.58 | 50.0    | 1,051             |
+| Transfer (student) | 0.1741 | 0.7478  | 0.0670 | 0.2418   | 0.7986 | 0.1356    | 0.4038 | 0.4525   | 7.38 | 12.8    | 223               |
+| Teacher (full GAM) | 0.2607 | 0.8106  | 0.0633 | 0.2239   | 0.7953 | 0.1698    | 0.4580 | 0.3599   | 5.89 | 140.3   | 1,132             |
 
 *Table 8.1: Test-set comparison at the frozen recall-0.80 thresholds. NNS = 1 / precision. Fit and
 prediction times are for the final model on this machine (22 CPU cores, no GPU). The teacher uses
@@ -42,12 +40,12 @@ closely by the transfer student (0.1741) and the basic GAM (0.1721). The forest 
 The ordering is the same for ROC-AUC. The differences among the top three are small: 0.0023
 PR-AUC between boosting and the GAM, and 0.0020 between transfer and the GAM.
 
-| Comparison | ΔPR-AUC | 95 % CI | ΔROC-AUC | Δprecision | Δrecall | Δreferral |
-|---|---|---|---|---|---|---|
-| Boosting − basic GAM | +0.0023 | [+0.0011, +0.0036] | +0.0024 | +0.0006 | −0.0002 | −0.0019 |
-| Bagging − basic GAM | −0.0064 | [−0.0086, −0.0041] | −0.0079 | −0.0030 | −0.0011 | +0.0098 |
-| Transfer − basic GAM | +0.0020 | [+0.0010, +0.0029] | +0.0021 | +0.0006 | +0.0016 | −0.0011 |
-| Boosting − transfer | +0.0003 | [−0.0001, +0.0009] | +0.0003 | +0.0000 | −0.0018 | −0.0008 |
+| Comparison           | ΔPR-AUC | 95 % CI            | ΔROC-AUC | Δprecision | Δrecall | Δreferral |
+| -------------------- | ------- | ------------------ | -------- | ---------- | ------- | --------- |
+| Boosting − basic GAM | +0.0023 | [+0.0011, +0.0036] | +0.0024  | +0.0006    | −0.0002 | −0.0019   |
+| Bagging − basic GAM  | −0.0064 | [−0.0086, −0.0041] | −0.0079  | −0.0030    | −0.0011 | +0.0098   |
+| Transfer − basic GAM | +0.0020 | [+0.0010, +0.0029] | +0.0021  | +0.0006    | +0.0016 | −0.0011   |
+| Boosting − transfer  | +0.0003 | [−0.0001, +0.0009] | +0.0003  | +0.0000    | −0.0018 | −0.0008   |
 
 *Table 8.2: Paired test-set differences against the basic GAM. Positive ΔPR-AUC, ΔROC-AUC,
 Δprecision or Δrecall favours the first model; a negative Δreferral means fewer patients referred.*
@@ -94,23 +92,23 @@ student is the questionnaire-only HGB from §7. The student never sees the labor
 prediction time.
 
 The teacher's out-of-fold probabilities are used as soft targets. For a distillation weight
-$\alpha$, each training row contributes three weighted copies:
+\(\alpha\), each training row contributes three weighted copies:
 
-- the true label with weight $1-\alpha$,
-- a positive teacher target with weight $\alpha t_i$,
-- a negative teacher target with weight $\alpha(1-t_i)$,
+- the true label with weight \(1-\alpha\),
+- a positive teacher target with weight \(\alpha t_i\),
+- a negative teacher target with weight \(\alpha(1-t_i)\),
 
-where $t_i$ is the teacher probability. This is equivalent to a soft-label logistic loss for
-the student and can be fitted with ordinary sample weights. $\alpha=0$ is the plain HGB
-baseline; $\alpha=1$ uses only the teacher.
+where \(t_i\) is the teacher probability. This is equivalent to a soft-label logistic loss for
+the student and can be fitted with ordinary sample weights. \(\alpha=0\) is the plain HGB
+baseline; \(\alpha=1\) uses only the teacher.
 
-| Distillation weight α | CV PR-AUC |
-|---|---|
-| 0.00 | 0.1715 ± 0.0032 |
-| 0.25 | 0.1718 ± 0.0033 |
-| 0.50 | 0.1727 ± 0.0030 |
-| 0.75 | 0.1726 ± 0.0028 |
-| 1.00 | 0.1722 ± 0.0029 |
+| Distillation weight α | CV PR-AUC       |
+| --------------------- | --------------- |
+| 0.00                  | 0.1715 ± 0.0032 |
+| 0.25                  | 0.1718 ± 0.0033 |
+| 0.50                  | 0.1727 ± 0.0030 |
+| 0.75                  | 0.1726 ± 0.0028 |
+| 1.00                  | 0.1722 ± 0.0029 |
 
 *Table 8.3: Distillation-weight sweep on a 300,000-row tuning sample, three folds. The best weight
 is 0.50, but all intervals overlap.*
