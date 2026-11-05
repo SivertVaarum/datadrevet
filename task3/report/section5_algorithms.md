@@ -126,9 +126,7 @@ These are associations in a screening model, not causal effects.
 Cross-validated PR-AUC is 0.1659 ± 0.0021 and test PR-AUC is 0.1656. At the frozen threshold the
 test recall is 0.7925, precision 0.1328, F2 0.3975, and 45.9 % of patients are referred. The
 linear model is therefore a reasonable ranking model, but it misses the 0.80 recall target by
-0.75 percentage points on the test set; the threshold was chosen on out-of-fold predictions and
-sampling variation moved the test recall slightly below the target. Lowering the threshold by a
-small amount would recover the missing cases at a small precision cost.
+0.75 percentage points on the test set.
 
 **Limitations.** The model cannot represent a threshold effect (for example, risk rising sharply
 after a particular waist) or an interaction (for example, age modifying the effect of BMI). The
@@ -175,19 +173,6 @@ several terms. The wide bands on the body-size panels reflect that collinearity.
 prevalence curves in section 2.1 are the right place to read the unadjusted relationship; the GAM
 panels answer a different question, namely what each column adds given the others.
 
-The GAM is the best-ranking model in this section: test PR-AUC 0.1721 against 0.1656 for logistic
-regression, a 3.9 % relative improvement, and ROC-AUC 0.7457 against 0.7400. At the operating
-point it refers 45.4 % of patients, catches 79.7 % of cases, and reaches precision 0.1350 and F2
-0.4024. The gain in ranking does not translate into a large gain at the 80 % recall point, because
-the precision-recall curve is flat there: all three models are trading roughly the same number of
-false alarms for the last few true cases.
-
-**Cost.** The GAM is the most expensive of the three: 19.8 s to fit on the full training set
-(single-threaded) and 208 ms to predict 100,000 rows, against 1.4 s and 35 ms for logistic
-regression. That is still affordable for a daily batch or an online service, but it is a real
-cost at population scale. If the model were retrained nightly, the difference would not matter;
-if it were refitted per clinic, it would.
-
 **Limitations.** Additivity is still an assumption: the model cannot learn that the effect of
 waist depends on age. The number of basis functions and the smoothing penalty are selected on a
 subsample, and the partial effects are conditional on correlated columns. The GAM is also harder
@@ -229,12 +214,6 @@ possible split points.
 *Figure 5.5: Permutation importance for the fitted tree, measured as the drop in PR-AUC on a
 50,000-row sample. Error bars are one standard deviation over five shuffles.*
 
-On test the tree reaches PR-AUC 0.1708, ROC-AUC 0.7443, recall 0.7992 at the frozen threshold,
-precision 0.1336 and F2 0.4003. It refers 46.0 % of patients. It is therefore almost as good as the
-GAM on ranking and slightly better on recall, but it is the least stable of the three: a different
-seed or a slightly different leaf size changes the lower splits, and the tree has no smooth notion
-of risk between neighbouring boxes.
-
 **Limitations.** A single tree is high-variance and unstable. It is also poorly calibrated when
 class weights are used, because the leaf values are weighted fractions rather than observed
 frequencies; the unweighted model avoids that problem (Brier 0.0671, close to the other two). The
@@ -243,9 +222,8 @@ candidate for the bagging and boosting comparison in section 7.
 
 ## 5.6 Summary of the three models
 
-Table 5.1 consolidates the out-of-fold results for the three models, and Table 5.2 gives their
-fitting and prediction cost. The held-out comparison, the operating point and the calibration
-analysis follow in §6.
+Table 5.1 consolidates the out-of-fold results for the three models. The held-out comparison, the
+operating point and the calibration analysis follow in §6.
 
 | Model | PR-AUC | ROC-AUC | Brier | Log loss | Threshold | CV recall | CV precision | CV F2 | CV referral |
 |---|---|---|---|---|---|---|---|---|---|
@@ -259,18 +237,6 @@ analysis follow in §6.
 ± standard deviation across folds; the other metrics are means. The threshold is chosen on these
 out-of-fold predictions to give recall ≥ 0.80.*
 
-| Model | Fit time (s) | Predict time (ms / 100k) |
-|---|---|---|
-| Majority class | 0.48 | 14 |
-| Logistic (untuned) | 1.59 | 49 |
-| Logistic regression | 1.37 | 35 |
-| GAM | 19.84 | 208 |
-| Decision tree | 1.68 | 24 |
-
-*Table 5.2: Training and prediction cost on this machine (22 CPU cores, no GPU). The GAM is
-single-threaded; the other fits use the available cores. Prediction time includes the
-preprocessing steps.*
-
 The three models are competitive on the same features. Section 6 evaluates them on the held-out
 set, compares their operating points and calibration, and measures what the laboratory values add.
 
@@ -282,23 +248,11 @@ set, compares their operating points and calibration, and measures what the labo
 - **No external validation.** The test set is a random hold-out from the same Korean NHIS data.
   Performance on another population, another age distribution or another measurement protocol is
   unknown.
-- **Partial effects are conditional.** The GAM panels and the logistic coefficients describe what
-  each column adds given the others. They are not causal effects and should not be read as
-  independent risk factors. The negative BMI and height effects are the clearest example of
-  collinearity, not evidence that obesity or tall stature is protective.
 - **Tuning is not nested.** The GAM and the tree are tuned on subsamples and then evaluated on the
   full training set with cross-validation. The selected hyperparameters are not re-selected inside
   every outer fold, so the reported scores are slightly optimistic. The differences between models
   are larger than the likely size of that optimism, but the absolute numbers should be read with
   that caveat.
-- **Threshold transfer.** The threshold is selected on out-of-fold predictions and applied to the
-  test set. The small drop in test recall (0.793–0.799 against the 0.80 target) is a reminder that
-  a threshold is a decision that needs monitoring after deployment, not a fixed property of the
-  model.
-- **Tree importance is not causal.** Impurity importance favours features with many split points,
-  and permutation importance on correlated features splits credit arbitrarily. The agreement
-  between the two, and with the GAM and logistic results, is what makes the age-and-waist
-  conclusion credible.
 
 ## References used in this section
 
