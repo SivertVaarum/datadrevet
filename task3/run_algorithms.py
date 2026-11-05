@@ -13,9 +13,9 @@ Outputs (with a tag suffix for non-final runs):
     data/preds_<model>.npz           OOF and test probabilities, for section 6
     data/search_<model>.csv          grid-search results
     data/lr_coefficients.csv         coefficients and odds ratios
-    figures/section5/pr_curves_basic.png, roc_curves_basic.png, calibration_basic.png,
     figures/section5/lr_coefficients.png, gam_partial_effects.png, tree_depth_curve.png,
     figures/section5/decision_tree.png, tree_importances.png
+    figures/section6/pr_curves_basic.png, roc_curves_basic.png, calibration_basic.png
 """
 import argparse
 import logging
@@ -60,6 +60,8 @@ logger = logging.getLogger(__name__)
 
 QUICK_TRAIN = 50_000
 QUICK_TEST = 10_000
+# PR, ROC and calibration curves compare the models, so they belong to section 6.
+COMPARISON_FIGURES_DIR = FIGURES_DIR.parent / "section6"
 
 
 def build_specs(feature_set, spline_features, linear_features):
@@ -123,6 +125,8 @@ def parse_args():
     parser.add_argument("--feature-set", default="questionnaire", choices=list(FEATURE_SETS))
     parser.add_argument("--quick", action="store_true", help="small stratified sample for a fast check")
     parser.add_argument("--tag", default="", help="suffix for output files, e.g. quick")
+    parser.add_argument("--skip-figures", action="store_true",
+                        help="write tables and predictions only, for auxiliary feature sets")
     return parser.parse_args()
 
 
@@ -130,7 +134,9 @@ def main():
     args = parse_args()
     suffix = f"_{args.tag}" if args.tag else ("_quick" if args.quick else "")
     figure_dir = FIGURES_DIR / "quick" if args.quick else FIGURES_DIR
+    comparison_dir = COMPARISON_FIGURES_DIR / ("quick" if args.quick else "")
     figure_dir.mkdir(parents=True, exist_ok=True)
+    comparison_dir.mkdir(parents=True, exist_ok=True)
     logger.info("Feature set: %s%s", args.feature_set, " (quick)" if args.quick else "")
 
     X_train, y_train, X_test, y_test = load_split(args.feature_set)
@@ -238,34 +244,35 @@ def main():
         DATA_DIR / f"baselines{suffix}.csv", index=False
     )
 
-    thresholds = dict(zip(test_table["model"], test_table["threshold"]))
-    plot_pr_curves(y_test, predictions, thresholds, figure_dir / f"pr_curves_basic{suffix}.png")
-    plot_roc_curves(y_test, predictions, thresholds, figure_dir / f"roc_curves_basic{suffix}.png")
-    plot_calibration(y_test, predictions, figure_dir / f"calibration_basic{suffix}.png")
+    if not args.skip_figures:
+        thresholds = dict(zip(test_table["model"], test_table["threshold"]))
+        plot_pr_curves(y_test, predictions, thresholds, comparison_dir / f"pr_curves_basic{suffix}.png")
+        plot_roc_curves(y_test, predictions, thresholds, comparison_dir / f"roc_curves_basic{suffix}.png")
+        plot_calibration(y_test, predictions, comparison_dir / f"calibration_basic{suffix}.png")
 
-    coefficient_table(
-        fitted["logistic"], X_train, DATA_DIR / f"lr_coefficients{suffix}.csv",
-        figure_path=figure_dir / f"lr_coefficients{suffix}.png",
-    )
-    gam_feature_names = list(fitted["gam"].named_steps["prep"].get_feature_names_out())
-    plot_gam_partial_effects(
-        fitted["gam"], gam_feature_names, X_train,
-        figure_dir / f"gam_partial_effects{suffix}.png",
-    )
-    tree_feature_names = list(fitted["tree"].named_steps["prep"].get_feature_names_out())
-    plot_tree_diagram(
-        fitted["tree"], tree_feature_names, figure_dir / f"decision_tree{suffix}.png"
-    )
-    if "tree" in search_tables:
-        plot_tree_depth_curve(search_tables["tree"], figure_dir / f"tree_depth_curve{suffix}.png")
+        coefficient_table(
+            fitted["logistic"], X_train, DATA_DIR / f"lr_coefficients{suffix}.csv",
+            figure_path=figure_dir / f"lr_coefficients{suffix}.png",
+        )
+        gam_feature_names = list(fitted["gam"].named_steps["prep"].get_feature_names_out())
+        plot_gam_partial_effects(
+            fitted["gam"], gam_feature_names, X_train,
+            figure_dir / f"gam_partial_effects{suffix}.png",
+        )
+        tree_feature_names = list(fitted["tree"].named_steps["prep"].get_feature_names_out())
+        plot_tree_diagram(
+            fitted["tree"], tree_feature_names, figure_dir / f"decision_tree{suffix}.png"
+        )
+        if "tree" in search_tables:
+            plot_tree_depth_curve(search_tables["tree"], figure_dir / f"tree_depth_curve{suffix}.png")
 
-    gam_edof_table(fitted["gam"], DATA_DIR / f"gam_edof{suffix}.csv")
-    X_importance, y_importance = subsample(X_train, y_train, 50_000)
-    tree_importance_table(
-        fitted["tree"], X_importance, y_importance,
-        DATA_DIR / f"tree_importances{suffix}.csv",
-        figure_dir / f"tree_importances{suffix}.png",
-    )
+        gam_edof_table(fitted["gam"], DATA_DIR / f"gam_edof{suffix}.csv")
+        X_importance, y_importance = subsample(X_train, y_train, 50_000)
+        tree_importance_table(
+            fitted["tree"], X_importance, y_importance,
+            DATA_DIR / f"tree_importances{suffix}.csv",
+            figure_dir / f"tree_importances{suffix}.png",
+        )
 
     print("\nCross-validated (out-of-fold) results:")
     print(cv_table.round(4).to_string(index=False))
@@ -273,7 +280,8 @@ def main():
     print(test_table.round(4).to_string(index=False))
     print("\nOperating points:")
     print(threshold_table.round(4).to_string(index=False))
-    logger.info("Saved tables to %s and figures to %s", DATA_DIR, figure_dir)
+    logger.info("Saved tables to %s, model figures to %s, comparison figures to %s",
+                DATA_DIR, figure_dir, comparison_dir)
 
 
 if __name__ == "__main__":

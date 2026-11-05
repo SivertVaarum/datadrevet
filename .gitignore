@@ -1,4 +1,10 @@
 *.csv
+!task3/data/*.csv
+task3/data/train.csv
+task3/data/test.csv
+task3/data/*_processed_*.csv
+task3/data/*_quick.csv
+
 *.joblib
 *.npz
 __pycache__/

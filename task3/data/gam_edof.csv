@@ -1,0 +1,11 @@
+feature,display_name,n_coefficients,edof
+age,age,5,3.606111512346646
+height,height,5,2.6536759798090577
+weight,weight,5,2.7964878926900765
+waistline,waistline,5,2.4902426810798035
+bmi,bmi,5,2.1746554006250682
+waist_to_height,waist-to-height ratio,5,1.9158335332045215
+male,male,1,0.9329380859793607
+drinker,drinker,1,0.998055489391699
+smoking_status_2,smoking (former),1,0.9976255513060158
+smoking_status_3,smoking (current),1,0.9958021769889325
