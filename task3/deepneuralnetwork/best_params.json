@@ -1,0 +1,11 @@
+{
+  "activation": "tanh",
+  "alpha": 2.9204338471814107e-05,
+  "batch_size": 512,
+  "hidden_layer_sizes": [
+    64,
+    32,
+    16
+  ],
+  "learning_rate_init": 0.0037183641805732083
+}

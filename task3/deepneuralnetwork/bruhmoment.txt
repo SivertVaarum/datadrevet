@@ -1,0 +1,34 @@
+Fit rows: 674077 | threshold rows: 118955 | test rows: 198258
+seed 0 done in 30s | epochs run: 7
+
+Params used: {'activation': 'tanh', 'alpha': 2.9204338471814107e-05, 'batch_size': 512, 'hidden_layer_sizes': (64, 32, 16), 'learning_rate_init': 0.0037183641805732083}
+Parameter count: 3329
+
+Test results over 1 seed(s) (mean ± std):
+  auc        0.7444 ± 0.0000
+  acc        0.7637 ± 0.0000
+  precision  0.1664 ± 0.0000
+  recall     0.5175 ± 0.0000
+  f1         0.2518 ± 0.0000
+  fit_time   30.2094 ± 0.0000
+
+Confusion matrix (last seed):
+ [[143529  39493]
+ [  7352   7884]]
+
+ 
+
+Fit rows: 674077 | threshold rows: 118955 | test rows: 198258
+seed 0 done in 31s | epochs run: 7
+seed 1 done in 30s | epochs run: 7
+seed 2 done in 30s | epochs run: 7
+seed 3 done in 29s | epochs run: 7
+seed 4 done in 28s | epochs run: 7
+
+Params used: {'activation': 'tanh', 'alpha': 2.9204338471814107e-05, 'batch_size': 512, 'hidden_layer_sizes': (64, 32, 16), 'learning_rate_init': 0.0037183641805732083}
+Parameter count: 3329
+
+Test results over 5 seed(s) (mean ± std):
+  auc        0.7458 ± 0.0010
+  acc        0.7704 ± 0.0119
+  precision  0.1686 ± 0.0034
