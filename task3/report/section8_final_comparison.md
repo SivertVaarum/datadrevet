@@ -1,3 +1,6 @@
+---
+updated_at: 2026-11-05 21:28
+---
 # 8.0 Final Comparison: Basic, Boosting, Bagging and Transfer
 
 Sections 5–7 produced four deployable questionnaire models: the best basic model (the GAM), the
@@ -91,15 +94,15 @@ student is the questionnaire-only HGB from §7. The student never sees the labor
 prediction time.
 
 The teacher's out-of-fold probabilities are used as soft targets. For a distillation weight
-\(\alpha\), each training row contributes three weighted copies:
+$\alpha$, each training row contributes three weighted copies:
 
-- the true label with weight \(1-\alpha\),
-- a positive teacher target with weight \(\alpha t_i\),
-- a negative teacher target with weight \(\alpha(1-t_i)\),
+- the true label with weight $1-\alpha$,
+- a positive teacher target with weight $\alpha t_i$,
+- a negative teacher target with weight $\alpha(1-t_i)$,
 
-where \(t_i\) is the teacher probability. This is equivalent to a soft-label logistic loss for
-the student and can be fitted with ordinary sample weights. \(\alpha=0\) is the plain HGB
-baseline; \(\alpha=1\) uses only the teacher.
+where $t_i$ is the teacher probability. This is equivalent to a soft-label logistic loss for
+the student and can be fitted with ordinary sample weights. $\alpha=0$ is the plain HGB
+baseline; $\alpha=1$ uses only the teacher.
 
 | Distillation weight α | CV PR-AUC |
 |---|---|

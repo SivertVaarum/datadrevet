@@ -95,11 +95,11 @@ features: each additional year of age, centimetre of waist or unit of BMI change
 a constant amount, and the effects of different features add up. That is a strong assumption, but
 it is exactly the assumption a clinician can read and challenge.
 
-The search covered regularization strengths from \(C = 0.003\) to \(C = 1\), with and without
+The search covered regularization strengths from $C = 0.003$ to $C = 1$, with and without
 balanced class weights. The result is almost flat: every regularization strength between 0.003 and
 1 gives a cross-validated PR-AUC between 0.1658 and 0.1659, and balanced class weighting is
 slightly worse (0.1651). The selected model therefore uses the strongest penalty on the grid
-(\(C = 0.003\)) and no class weighting, but for practical purposes it is the same model as the
+($C = 0.003$) and no class weighting, but for practical purposes it is the same model as the
 untuned baseline. The L2 strength is not what limits this model. That is itself informative: the
 linear form, not the amount of regularization, is the binding constraint.
 

@@ -21,7 +21,7 @@ The two ensembles are deliberately different, not two tunings of the same method
 
 **Boosting: histogram gradient-boosted trees (HGB).** The base learner is a shallow regression tree, typically
 with 15–31 leaves. Trees are added one at a time. Each new tree is fitted to the negative gradient
-of the logistic loss, which for the logit link is simply the residual \(y-\hat p\). The update is
+of the logistic loss, which for the logit link is simply the residual $y-\hat p$. The update is
 scaled by a learning rate, so no single tree can dominate. This is a bias-reduction method: the
 model starts underfit and becomes progressively more flexible. It is the natural choice for
 tabular data because it captures non-linearities and interactions without hand-crafted features,
@@ -39,28 +39,28 @@ sense in which different algorithms are used for boosting and bagging.
 
 ## 7.2 Boosting: the algorithm
 
-The model is built in function space. Let \(F_0(x)\) be the constant log-odds of the base rate.
-For iteration \(m = 1,\ldots,M\):
+The model is built in function space. Let $F_0(x)$ be the constant log-odds of the base rate.
+For iteration $m = 1,\ldots,M$:
 
-1. Compute the current probability \(\hat p_i = \sigma(F_{m-1}(x_i))\) and the negative gradient
-   \(r_i = y_i - \hat p_i\).
-2. Fit a shallow regression tree \(h_m\) to the residuals \(r_i\), using the tree-size and
+1. Compute the current probability $\hat p_i = \sigma(F_{m-1}(x_i))$ and the negative gradient
+   $r_i = y_i - \hat p_i$.
+2. Fit a shallow regression tree $h_m$ to the residuals $r_i$, using the tree-size and
    leaf-size constraints.
-3. Compute a leaf value \(\gamma_{jm}\) for each leaf \(j\) of the tree. For the logistic loss this
+3. Compute a leaf value $\gamma_{jm}$ for each leaf $j$ of the tree. For the logistic loss this
    is the Newton step
    $$
    \gamma_{jm} = \frac{\sum_{i \in R_{jm}} r_i}{\sum_{i \in R_{jm}} \hat p_i(1-\hat p_i)},
    $$
-   where \(R_{jm}\) is the set of training rows in leaf \(j\).
+   where $R_{jm}$ is the set of training rows in leaf $j$.
 4. Update the model:
    $$
    F_m(x) = F_{m-1}(x) + \nu\, h_m(x),
    $$
-   where \(\nu\) is the learning rate.
+   where $\nu$ is the learning rate.
 5. Stop when the validation loss has not improved for a fixed number of iterations, or when the
    maximum number of iterations is reached.
 
-The final probability is \(\hat p(x)=\sigma(F_M(x))\). The learning rate and the number of
+The final probability is $\hat p(x)=\sigma(F_M(x))$. The learning rate and the number of
 iterations trade off against each other: a smaller rate needs more trees but usually generalizes
 better. The tree size controls the order of the interactions the model can represent; a tree with
 15 leaves can capture interactions among a handful of features, while a stump would be additive.
@@ -128,11 +128,11 @@ mid-range. The boosted model is less smooth than the GAM, but the direction is t
 
 ## 7.4 Bagging: the algorithm
 
-Bagging trains \(B\) base models on independent bootstrap samples and averages their predictions.
+Bagging trains $B$ base models on independent bootstrap samples and averages their predictions.
 For a forest, each tree is grown deep and each split considers a random subset of the features.
 The steps are:
 
-1. For \(b = 1,\ldots,B\), draw a bootstrap sample of size \(n\) with replacement from the training
+1. For $b = 1,\ldots,B$, draw a bootstrap sample of size $n$ with replacement from the training
    set.
 2. Grow a deep decision tree on the bootstrap sample. At each node, consider only a random subset
    of the features when choosing the split. Stop when the leaf-size and depth constraints are met.
