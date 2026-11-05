@@ -1,5 +1,5 @@
 ---
-updated_at: 2026-11-05 16:24
+updated_at: 2026-11-05 18:27
 ---
 # 6.0 Comparison of the Three Algorithms
 
@@ -179,16 +179,16 @@ higher recall target visible.
 ![Figure 6.7](../figures/section6/subgroup_performance.png)
 *Figure 6.7: Recall and precision by age, sex and BMI subgroup, with 95 % bootstrap intervals.*
 
-| Subgroup | n | Prevalence | LR recall | LR precision | GAM recall | GAM precision | Tree recall | Tree precision |
-|---|---|---|---|---|---|---|---|---|
-| Age <40 | 49,769 | 0.0193 | 0.3853 | 0.0691 | 0.2056 | 0.1124 | 0.2565 | 0.0913 |
-| Age 40–59 | 97,796 | 0.0773 | 0.7093 | 0.1305 | 0.7446 | 0.1282 | 0.7446 | 0.1269 |
-| Age 60+ | 50,693 | 0.1324 | 0.9447 | 0.1426 | 0.9409 | 0.1427 | 0.9385 | 0.1429 |
-| Female | 93,091 | 0.0559 | 0.6463 | 0.1207 | 0.6836 | 0.1162 | 0.6745 | 0.1164 |
-| Male | 105,167 | 0.0954 | 0.8683 | 0.1381 | 0.8558 | 0.1447 | 0.8638 | 0.1421 |
-| BMI <25 | 131,299 | 0.0583 | 0.6822 | 0.1237 | 0.7100 | 0.1217 | 0.7044 | 0.1215 |
-| BMI 25–30 | 57,619 | 0.1069 | 0.8940 | 0.1360 | 0.8777 | 0.1423 | 0.8818 | 0.1403 |
-| BMI 30+ | 9,340 | 0.1519 | 0.9479 | 0.1637 | 0.9161 | 0.1797 | 0.9521 | 0.1683 |
+| Subgroup  | n       | Prevalence | LR recall | LR precision | GAM recall | GAM precision | Tree recall | Tree precision |
+| --------- | ------- | ---------- | --------- | ------------ | ---------- | ------------- | ----------- | -------------- |
+| Age <40   | 49,769  | 0.0193     | 0.3853    | 0.0691       | 0.2056     | 0.1124        | 0.2565      | 0.0913         |
+| Age 40–59 | 97,796  | 0.0773     | 0.7093    | 0.1305       | 0.7446     | 0.1282        | 0.7446      | 0.1269         |
+| Age 60+   | 50,693  | 0.1324     | 0.9447    | 0.1426       | 0.9409     | 0.1427        | 0.9385      | 0.1429         |
+| Female    | 93,091  | 0.0559     | 0.6463    | 0.1207       | 0.6836     | 0.1162        | 0.6745      | 0.1164         |
+| Male      | 105,167 | 0.0954     | 0.8683    | 0.1381       | 0.8558     | 0.1447        | 0.8638      | 0.1421         |
+| BMI <25   | 131,299 | 0.0583     | 0.6822    | 0.1237       | 0.7100     | 0.1217        | 0.7044      | 0.1215         |
+| BMI 25–30 | 57,619  | 0.1069     | 0.8940    | 0.1360       | 0.8777     | 0.1423        | 0.8818      | 0.1403         |
+| BMI 30+   | 9,340   | 0.1519     | 0.9479    | 0.1637       | 0.9161     | 0.1797        | 0.9521      | 0.1683         |
 
 *Table 6.4: Subgroup performance at the frozen threshold. Subgroups are exploratory; the
 confidence intervals matter more than the point estimates.*
@@ -217,27 +217,27 @@ current “full” feature set adds eight equipment columns (blood pressure, vis
 as the ten laboratory columns, so a questionnaire-versus-full gap cannot be attributed to the
 laboratory values alone. The clean comparison uses three nested feature sets:
 
-| Feature set | Content | Features after encoding |
-|---|---|---|
-| Questionnaire | self-reported and home-measured inputs | 10 |
-| Questionnaire + equipment | plus blood pressure, vision and hearing | 18 |
-| Full | plus the ten blood and urine values | 28 |
+| Feature set               | Content                                 | Features after encoding |
+| ------------------------- | --------------------------------------- | ----------------------- |
+| Questionnaire             | self-reported and home-measured inputs  | 10                      |
+| Questionnaire + equipment | plus blood pressure, vision and hearing | 18                      |
+| Full                      | plus the ten blood and urine values     | 28                      |
 
 Each model is fitted on the same folds with the same preprocessing and the same threshold rule.
 Table 6.5 reports the comparison; Figure 6.8 shows the PR-AUC and the precision at the frozen
 threshold across the three sets.
 
-| Model | Feature set | PR-AUC | ROC-AUC | Test precision | Test referral | ΔPR-AUC vs questionnaire |
-|---|---|---|---|---|---|---|
-| GAM | Questionnaire | 0.1721 | 0.7457 | 0.1350 | 0.4536 | — |
-| GAM | + equipment | 0.1804 | 0.7547 | 0.1389 | 0.4406 | +0.0082 |
-| GAM | Full | 0.2607 | 0.8106 | 0.1698 | 0.3599 | +0.0886 |
-| Logistic regression | Questionnaire | 0.1656 | 0.7400 | 0.1328 | 0.4587 | — |
-| Logistic regression | + equipment | 0.1704 | 0.7475 | 0.1369 | 0.4481 | +0.0048 |
-| Logistic regression | Full | 0.2356 | 0.7940 | 0.1575 | 0.3862 | +0.0700 |
-| Decision tree | Questionnaire | 0.1708 | 0.7443 | 0.1336 | 0.4597 | — |
-| Decision tree | + equipment | 0.1743 | 0.7500 | 0.1385 | 0.4343 | +0.0036 |
-| Decision tree | Full | 0.2325 | 0.7867 | 0.1517 | 0.4035 | +0.0617 |
+| Model               | Feature set   | PR-AUC | ROC-AUC | Test precision | Test referral | ΔPR-AUC vs questionnaire |
+| ------------------- | ------------- | ------ | ------- | -------------- | ------------- | ------------------------ |
+| GAM                 | Questionnaire | 0.1721 | 0.7457  | 0.1350         | 0.4536        | —                        |
+| GAM                 | + equipment   | 0.1804 | 0.7547  | 0.1389         | 0.4406        | +0.0082                  |
+| GAM                 | Full          | 0.2607 | 0.8106  | 0.1698         | 0.3599        | +0.0886                  |
+| Logistic regression | Questionnaire | 0.1656 | 0.7400  | 0.1328         | 0.4587        | —                        |
+| Logistic regression | + equipment   | 0.1704 | 0.7475  | 0.1369         | 0.4481        | +0.0048                  |
+| Logistic regression | Full          | 0.2356 | 0.7940  | 0.1575         | 0.3862        | +0.0700                  |
+| Decision tree       | Questionnaire | 0.1708 | 0.7443  | 0.1336         | 0.4597        | —                        |
+| Decision tree       | + equipment   | 0.1743 | 0.7500  | 0.1385         | 0.4343        | +0.0036                  |
+| Decision tree       | Full          | 0.2325 | 0.7867  | 0.1517         | 0.4035        | +0.0617                  |
 
 *Table 6.5: Nested feature-set comparison. The questionnaire row is the main model from §5. The
 questionnaire + equipment row isolates the contribution of the equipment measurements; the full
