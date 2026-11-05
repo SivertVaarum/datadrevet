@@ -1,5 +1,5 @@
 ---
-updated_at: 2026-11-05 21:50
+updated_at: 2026-11-05 22:07
 ---
 # 7.0 Boosting and Bagging
 
@@ -80,10 +80,10 @@ test PR-AUC of 0.1744. The test ROC-AUC was 0.7481. At the frozen threshold the 
 recall 0.7968, precision 0.1356, F2 0.4033 and a referral rate of 45.2 %. Table 7.1 collects the
 results.
 
-| Model | CV PR-AUC | Test PR-AUC | Test ROC-AUC | Test recall | Test precision | Test F2 | Test referral |
-|---|---|---|---|---|---|---|---|
-| Boosting (HGB) | 0.1754 ± 0.0021 | 0.1744 | 0.7481 | 0.7968 | 0.1356 | 0.4033 | 0.4517 |
-| Bagging (RF) | 0.1658 ± 0.0019 | 0.1657 | 0.7378 | 0.7959 | 0.1320 | 0.3968 | 0.4634 |
+| Model          | CV PR-AUC       | Test PR-AUC | Test ROC-AUC | Test recall | Test precision | Test F2 | Test referral |
+| -------------- | --------------- | ----------- | ------------ | ----------- | -------------- | ------- | ------------- |
+| Boosting (HGB) | 0.1754 ± 0.0021 | 0.1744      | 0.7481       | 0.7968      | 0.1356         | 0.4033  | 0.4517        |
+| Bagging (RF)   | 0.1658 ± 0.0019 | 0.1657      | 0.7378       | 0.7959      | 0.1320         | 0.3968  | 0.4634        |
 
 *Table 7.1: Cross-validated and test results for the two ensembles on the questionnaire features.
 The threshold is the largest out-of-fold value with recall ≥ 0.80, applied once to the test set.*
